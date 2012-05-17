@@ -8,9 +8,8 @@
 # Les logs sont présents dans le fichier /var/lib/deluge/logs/torrent_completed.log
 ##############################################################################################
 
-
 # Inclusion des fonctions communes
-. functions.sh
+. $(dirname $0)/functions.sh
 
 # Constantes
 LOG_FILE="$LOG_FOLDER/torrent_completed.log"
@@ -40,4 +39,3 @@ log "$LOG_FILE" "$torrentname" "Fin de traitement pour le fichier : $torrentname
 
 # Exécution du script de traitement des fichiers téléchargés
 todo_watcher.sh "$torrentpath"
-

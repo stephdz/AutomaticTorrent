@@ -4,13 +4,14 @@
 ##############################################################################################
 
 # Constantes
-LOG_FOLDER=/var/lib/deluge/logs
+DELUGE_FOLDER="/var/lib/deluge"
+LOG_FOLDER="$DELUGE_FOLDER/logs"
 TODO_FOLDER=".a_traiter"
 WAITING_SUBTITLES_FOLDER=".sous_titres"
 WAITING_TRANSCODING_FOLDER=".a_encoder"
 COMPLETED_FOLDER="Fini"
 ENCODED_FOLDER="A supprimer"
-SUBTITLE_EXTENSION=srt
+SUBTITLE_EXTENSION="srt"
 
 
 ##############################################################################################
@@ -22,9 +23,9 @@ init() {
 
 	# Création du dossier de log
 	if [ ! -e "$LOG_FOLDER" ]; then
-		log "$LOG_FILE" "init" "Création du dossier de log : $LOG_FOLDER"
 		mkdir "$LOG_FOLDER"
 		chmod 755 "$LOG_FOLDER"
+		log "$LOG_FILE" "init" "Création du dossier de log : $LOG_FOLDER"
 	fi
 
 	# Création du dossier A traiter
@@ -51,7 +52,7 @@ init() {
 	# Création du dossier "A supprimer"
 	if [ ! -e "$1/$ENCODED_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers encodés : $1/$ENCODED_FOLDER"
-		mkdir "$1/$ENCODED_FOLDERR"
+		mkdir "$1/$ENCODED_FOLDER"
 		chmod 755 "$1/$ENCODED_FOLDER"
 	fi
 
@@ -82,7 +83,7 @@ clean_lock() {
 
 # Fonction de log
 log(){
-	echo "[$1] $2" >>$0
+	echo "[$2] $3" >>$1
 }
 
 # Fonction d'encodage
@@ -96,3 +97,6 @@ transcode(){
 ##############################################################################################
 
 
+# On ajoute le dossier bin au PATH pour simplifier les choses
+PATH=$PATH:$DELUGE_FOLDER/bin
+export PATH

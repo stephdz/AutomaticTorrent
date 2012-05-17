@@ -66,13 +66,18 @@ compute_file(){
 	esac
 }
 
+# Traitement d'un fichier
+do_job() {
+	echo "TODO $1"
+}
+
 ##############################################################################################
 # FIN DES FONCTIONS
 ##############################################################################################
 
 
 # Inclusion des fonctions communes
-. functions.sh
+. $(dirname $0)/functions.sh
 
 # Récupération des paramètres
 DELUGE_FOLDER=$1
