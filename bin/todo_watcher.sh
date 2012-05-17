@@ -1,88 +1,17 @@
 #!/bin/bash
 ##############################################################################################
-# download_watcher.sh : Traitement post-download
+# todo_watcher.sh : Traitement post-download
 # Les vidéos MP4 sont encodées pour la Freebox via arista.
-# Les sous titres sont récupérés grâce à periscope.
+# Les sous titres sont récupérés grâce à OpenSubtitles.
 # Paramètres :
 #  - $1 : nom du dossier des téléchargements de Deluge
-# Les logs sont présents dans le fichier /var/log/deluge/download_watcher.log
+# Les logs sont présents dans le fichier /var/lib/deluge/logs/todo_watcher.log
 ##############################################################################################
 
-
-# Constantes
-LOG_FOLDER=/var/log/deluge
-LOG_FILE="$LOG_FOLDER/download_watcher.log"
-WATCHER_LOCK_FILE="$LOG_FOLDER/watcher.lock"
-ENCODED_FOLDER="A supprimer"
-SUDO_EXEC=gksudo
-SUBTITLE_EXTENSION=srt
-
-# Récupération des paramètres
-DELUGE_FOLDER=$1
-TO_COMPUTE="$DELUGE_FOLDER/A traiter"
-WAITING_SUBTITLES="$DELUGE_FOLDER/En attente de sous-titres"
-WAITING_TRANSCODING="$DELUGE_FOLDER/A encoder"
-COMPLETED_FOLDER="$DELUGE_FOLDER/Fini"
 
 ##############################################################################################
 # FONCTIONS
 ##############################################################################################
-
-# Fonction d'initialisation
-init() {
-
-	# Création du dossier "A traiter"
-	if [ ! -e "TO_COMPUTE" ]; then
-		log "Création du dossier 'A traiter' : $TO_COMPUTE"
-		$SUDO_EXEC mkdir "$TO_COMPUTE"
-		$SUDO_EXEC chmod 777 "$TO_COMPUTE"
-	fi
-
-	# Création du dossier "En attente de sous-titres"
-	if [ ! -e "$WAITING_SUBTITLES" ]; then
-		log "Création du dossier 'En attente de sous-titres' : $WAITING_SUBTITLES"
-		$SUDO_EXEC mkdir "$WAITING_SUBTITLES"
-		$SUDO_EXEC chmod 777 "$WAITING_SUBTITLES"
-	fi
-
-	# Création du dossier "A encoder"
-	if [ ! -e "$WAITING_TRANSCODING" ]; then
-		log "Création du dossier 'A encoder' : $WAITING_TRANSCODING"
-		$SUDO_EXEC mkdir "$WAITING_TRANSCODING"
-		$SUDO_EXEC chmod 777 "$WAITING_TRANSCODING"
-	fi
-
-	# Création du dossier "Fini"
-	if [ ! -e "$COMPLETED_FOLDER" ]; then
-		log "Création du dossier 'Fini' : $COMPLETED_FOLDER"
-		$SUDO_EXEC mkdir "$COMPLETED_FOLDER"
-		$SUDO_EXEC chmod 777 "$COMPLETED_FOLDER"
-	fi
-
-	# Fichier de lock pour qu'un seul processus ne traite les fichiers à la fois
-	if [ -e $WATCHER_LOCK_FILE ]; then
-		log "init" "Daemon déjà en cours d'exécution"
-		exit 0
-	fi
-	touch $WATCHER_LOCK_FILE
-}
-
-# Fonction de nettoyage de fin de script
-clean() {
-	# Suppression du fichier de lock
-	rm -f $WATCHER_LOCK_FILE
-}
-
-# Fonction de log
-log() {
-	echo "[$1] $2" >>$LOG_FILE
-}
-
-# Fonction d'encodage
-transcode(){
-	log "$1" "Encodage de la vidéo de $1 vers $2"
-	nice -n 0 arista-transcode -q -o "$2" -d dvd "$1"
-}
 
 # Traitement des vidéos non supportées par la Freebox
 convert_for_freebox(){
@@ -141,27 +70,27 @@ compute_file(){
 # FIN DES FONCTIONS
 ##############################################################################################
 
+
+# Inclusion des fonctions communes
+. functions.sh
+
+# Récupération des paramètres
+DELUGE_FOLDER=$1
+
+# Constantes
+LOG_FILE="$LOG_FOLDER/todo_watcher.log"
+LOCK_FILE="$DELUGE_FOLDER/$TODO_FOLDER/.lock"
+
 # Initialisation
-init
+init "$DELUGE_FOLDER"
+init_lock
 
 # Boucle de parcours des fichiers du dossier "A traiter"
-for computedfile in $(ls -a -1 -p $TO_COMPUTE|grep -v /); 
+for file in $(ls -a -1 -p "$DELUGE_FOLDER/$TODO_FOLDER"|grep -v /); 
 do 
-	compute_file
-done;
-
-# Boucle de parcours des fichiers du dossier "En attente de sous-titres"
-for computedfile in $(ls -a -1 -p $WAITING_SUBTITLES|grep -v /); 
-do 
-	compute_subtitle
-done;
-
-# Boucle de parcours des fichiers du dossier "En attente d'encodage"
-for computedfile in $(ls -a -1 -p $WAITING_TRANSCODING|grep -v /); 
-do 
-	compute_transcoding
+	do_job "$file"
 done;
 
 # Nettoyage
-clean
+clean_lock
 
