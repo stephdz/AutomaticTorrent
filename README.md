@@ -3,6 +3,23 @@ AutomaticTorrent
 
 Traitements automatisés après téléchargement de torrents de séries par Deluge sous Linux.
 
+v2.0 :
+======
+
+ - un script torrent_completed à utiliser avec le plugin Execute de Deluge
+ - des watchers qui scrutent chacun un dossier avec un workflow complet entre les différents dossiers permettant de :
+	* rester en attente des sous-titres si jamais la vidéo a été téléchargée avant que des sous-titres aient été publiés
+	* réencoder les fichiers non compatibles avec la Freebox (1 seul à la fois pour ne pas surcharger le PC)
+	* alerter en cas d'encodage échoué
+	* ranger les fichiers terminés reconnus
+ - nécessite :
+    * Arista pour encoder les vidéos pour la Freebox
+ - OpenSubtitles v1.0 est inclus pour le téléchargement des fichiers de sous-titres depuis opensubtitles.org
+ - problèmes connus : 
+    * risques d'état instable en cas d'arrêt du PC pendant le travail d'un watcher
+		=> à étudier et à gérer en v2.1
+
+ 
 v1.0 :
 ======
 

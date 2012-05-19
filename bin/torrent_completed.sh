@@ -14,10 +14,24 @@
 # Constantes
 LOG_FILE="$LOG_FOLDER/torrent_completed.log"
 
-# Récupération des paramètres
+# Récupération des paramètres et contrôles
 torrentid=$1
 torrentname=$2
 torrentpath=$3
+if [ "$1" = "" -o "$2" = "" -o "$3" = "" ]; then
+	echo_log "$LOG_FILE" "$torrentname" "Paramètres invalides :"
+	echo_log "$LOG_FILE" "$torrentname" " - 1 : id du torrent (=$torrentid)"
+	echo_log "$LOG_FILE" "$torrentname" " - 2 : nom du fichier torrent (=$torrentname)"
+	echo_log "$LOG_FILE" "$torrentname" " - 3 : dossier où est présent le résultat (=$torrentpath)"
+	exit
+fi
+if [ ! -s "$torrentpath/$torrentname" ]; then
+	echo_log "$LOG_FILE" "$torrentname" "Le fichier n'existe pas :"
+	echo_log "$LOG_FILE" "$torrentname" " - ID : $torrentid"
+	echo_log "$LOG_FILE" "$torrentname" " - Nom : $torrentname"
+	echo_log "$LOG_FILE" "$torrentname" " - Chemin : $torrentpath"
+	exit
+fi
 
 # Initialisation
 init "$torrentpath"
