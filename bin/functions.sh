@@ -22,7 +22,7 @@ WAITING_SUBTITLES_FOLDER=".sous_titres"
 WAITING_TRANSCODING_FOLDER=".a_encoder"
 COMPLETED_FOLDER="Fini"
 TO_BE_DELETED_FOLDER="A supprimer"
-FAILED_TRANSCODING_FOLDER="Encodage échoué"
+FAILED_TRANSCODING_FOLDER="Erreur encodage"
 
 # Constantes diverses
 LOCK_FILE=".lock"
@@ -30,7 +30,7 @@ VIDEO_REGEXP="(avi|divx|mp21|mp2v|mpg2|mp4|mp4v|mpe|mpeg4|mpg|mpeg|mkv|asf|ts|h2
 UNCOMPATIBLE_VIDEO_REGEXP="(mp4|mpeg4)"
 TRANSCODING_EXTENSION="avi"
 CRONTAB_FILE="$DELUGE_FOLDER/.crontab"
-CRONTAB_PERIOD="10"
+CRONTAB_PERIOD="5"
 OR_REGEXP_STRING="|"
 
 # La liste des watchers
@@ -94,25 +94,36 @@ init() {
 	fi
 	
 	# Ajout des tâches cron pour les watchers
-	crontab -l > "$CRONTAB_FILE"
-	cat "$CRONTAB_FILE" | egrep -ivh "($WATCHERS)" > "$CRONTAB_FILE"
-	IFS=$OR_REGEXP_STRING
-	for watcher in $WATCHERS; do
-		echo "*/$CRONTAB_PERIOD * * * * $DELUGE_BIN_FOLDER/$watcher \"$1\"" >> "$CRONTAB_FILE"
-	done
-	unset IFS
-	crontab "$CRONTAB_FILE"
+	if [ $(lock "$DELUGE_FOLDER") = "true" ]; then
+		crontab -l > "$CRONTAB_FILE"
+		cat "$CRONTAB_FILE" | egrep -ivh "($WATCHERS)" > "$CRONTAB_FILE"
+		IFS=$OR_REGEXP_STRING
+		for watcher in $WATCHERS; do
+			echo "*/$CRONTAB_PERIOD * * * * $DELUGE_BIN_FOLDER/$watcher \"$1\"" >> "$CRONTAB_FILE"
+		done
+		unset IFS
+		crontab "$CRONTAB_FILE"
+		clean_lock "$DELUGE_FOLDER"
+	fi
 }
 
-# Fonction d'initialisation
+# Fonction d'initialisation du lock
 init_lock() {
-
-	# Fichier de lock pour qu'un seul processus ne traite les fichiers à la fois
-	if [ -e "$1/$LOCK_FILE" ]; then
+	if [ $(lock "$1") = "false" ]; then
 		log "$LOG_FILE" "init_lock" "Daemon déjà en cours d'exécution"
 		exit 0
 	fi
-	touch "$1/$LOCK_FILE"
+}
+
+# Crée un lock sur un dossier et retourne true si tout est bon, false si un lock est déjà posé
+lock() {
+	# Fichier de lock pour qu'un seul processus ne traite les fichiers à la fois
+        if [ -e "$1/$LOCK_FILE" ]; then
+                echo "false"
+	else
+		touch "$1/$LOCK_FILE"
+		echo "true"
+        fi
 }
 
 # Fonction de nettoyage de fin de script

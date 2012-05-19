@@ -50,11 +50,10 @@ do
 	fi
 done;
 
+# Nettoyage
+clean_lock "$DELUGE_FOLDER/$WAITING_SUBTITLES_FOLDER"
+
 # Lancement de transcoding_watcher si on a trouvé des sous-titres
 if [ "$found" = "true" ]; then
 	transcoding_watcher.sh "$DELUGE_FOLDER"
 fi
-
-# Nettoyage
-clean_lock "$DELUGE_FOLDER/$WAITING_SUBTITLES_FOLDER"
-

@@ -46,6 +46,9 @@ do
 	fi
 done;
 
+# Nettoyage
+clean_lock "$DELUGE_FOLDER/$TODO_FOLDER"
+
 # Lancement de finished_watcher si on a trouvé terminé des fichiers
 if [ "$finished" = "true" ]; then
 	finished_watcher.sh "$DELUGE_FOLDER"
@@ -55,7 +58,3 @@ fi
 if [ "$video" = "true" ]; then
 	subtitles_watcher.sh "$DELUGE_FOLDER"
 fi
-
-# Nettoyage
-clean_lock "$DELUGE_FOLDER/$TODO_FOLDER"
-

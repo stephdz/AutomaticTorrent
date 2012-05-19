@@ -60,6 +60,9 @@ do
 	fi
 done;
 
+# Nettoyage
+clean_lock "$DELUGE_FOLDER/$WAITING_TRANSCODING_FOLDER"
+
 # Lancement de failed_transcoding_watcher si on a échoué des encodages
 if [ "$failed" = "true" ]; then
 	failed_transcoding_watcher.sh "$DELUGE_FOLDER"
@@ -69,7 +72,3 @@ fi
 if [ "$finished" = "true" ]; then
 	finished_watcher.sh "$DELUGE_FOLDER"
 fi
-
-# Nettoyage
-clean_lock "$DELUGE_FOLDER/$WAITING_TRANSCODING_FOLDER"
-
