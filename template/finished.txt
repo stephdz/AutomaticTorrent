@@ -1,0 +1,8 @@
+Bonjour,
+
+Deluge vous informe que le fichier '#filename#' a bien été téléchargé.
+Il est disponible dans le dossier '#folder#'.
+
+Bonne journée,
+
+Deluge

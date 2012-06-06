@@ -96,7 +96,7 @@ init() {
 	# Ajout des tâches cron pour les watchers
 	if [ $(lock "$DELUGE_FOLDER") = "true" ]; then
 		crontab -l > "$CRONTAB_FILE"
-		cat "$CRONTAB_FILE" | egrep -ivh "($WATCHERS)" > "$CRONTAB_FILE"
+		echo $(cat "$CRONTAB_FILE" | egrep -ivh "($WATCHERS)") > "$CRONTAB_FILE"
 		IFS=$OR_REGEXP_STRING
 		for watcher in $WATCHERS; do
 			echo "*/$CRONTAB_PERIOD * * * * $DELUGE_BIN_FOLDER/$watcher \"$1\"" >> "$CRONTAB_FILE"
@@ -236,6 +236,33 @@ transcode() {
 		fi
 		echo "false"
 	fi
+}
+
+# Fonction d'envoi d'email
+#  - $1 : destinataire
+#  - $2 : objet
+#  - $3 : fichier contenant le corps du mail
+email() {
+	mail -s "$2" "$1" < "$3"
+}
+
+# Fonction remplissant un template
+#  - $1 : le fichier template
+#  - autres paramètres : une liste de champ=valeur
+# Retourne le nom du fichier résultat créé
+# Exemple :
+#   prepare_template "/template/finished.txt" "filename=Test.avi" "folder=Fini"
+prepare_template() {
+	resultfile="$1"_$(date +"%Y%m%d%H%M%S%N")
+	cp "$1" "$resultfile"
+	shift
+	for param in "$@";
+	do
+		variable=$(echo $param | cut -d"=" -f1 | sed 's/\//\\\//g');
+		value=$(echo $param | cut -d"=" -f2 | sed 's/\//\\\//g');
+		sed -i -e "s/#$variable#/$value/g" "$resultfile"
+	done;
+	echo "$resultfile"
 }
 
 ##############################################################################################
