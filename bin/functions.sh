@@ -47,7 +47,7 @@ init() {
 	# Création du dossier de log
 	if [ ! -e "$LOG_FOLDER" ]; then
 		mkdir "$LOG_FOLDER"
-		chmod 755 "$LOG_FOLDER"
+		chmod 777 "$LOG_FOLDER"
 		log "$LOG_FILE" "init" "Création du dossier de log : $LOG_FOLDER"
 	fi
 
@@ -55,46 +55,46 @@ init() {
 	if [ ! -e "$1/$TODO_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers à traiter : $1/$TODO_FOLDER"
 		mkdir "$1/$TODO_FOLDER"
-		chmod 755 "$1/$TODO_FOLDER"
+		chmod 777 "$1/$TODO_FOLDER"
 	fi
 
 	# Création du dossier "En attente de sous-titres"
 	if [ ! -e "$1/$WAITING_SUBTITLES_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers en attente de sous-titres : $1/$WAITING_SUBTITLES_FOLDER"
 		mkdir "$1/$WAITING_SUBTITLES_FOLDER"
-		chmod 755 "$1/$WAITING_SUBTITLES_FOLDER"
+		chmod 777 "$1/$WAITING_SUBTITLES_FOLDER"
 	fi
 
 	# Création du dossier "A encoder"
 	if [ ! -e "$1/$WAITING_TRANSCODING_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers à encoder : $1/$WAITING_TRANSCODING_FOLDER"
 		mkdir "$1/$WAITING_TRANSCODING_FOLDER"
-		chmod 755 "$1/$WAITING_TRANSCODING_FOLDER"
+		chmod 777 "$1/$WAITING_TRANSCODING_FOLDER"
 	fi
 
 	# Création du dossier "A supprimer"
 	if [ ! -e "$1/$TO_BE_DELETED_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers encodés : $1/$TO_BE_DELETED_FOLDER"
 		mkdir "$1/$TO_BE_DELETED_FOLDER"
-		chmod 755 "$1/$TO_BE_DELETED_FOLDER"
+		chmod 777 "$1/$TO_BE_DELETED_FOLDER"
 	fi
-	
+
 	# Création du dossier "Encodage échoué"
 	if [ ! -e "$1/$FAILED_TRANSCODING_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers non encodés : $1/$FAILED_TRANSCODING_FOLDER"
 		mkdir "$1/$FAILED_TRANSCODING_FOLDER"
-		chmod 755 "$1/$FAILED_TRANSCODING_FOLDER"
+		chmod 777 "$1/$FAILED_TRANSCODING_FOLDER"
 	fi
 
 	# Création du dossier "Fini"
 	if [ ! -e "$1/$COMPLETED_FOLDER" ]; then
 		log "$LOG_FILE" "init" "Création du dossier de stockage des fichiers terminés : $1/$COMPLETED_FOLDER"
 		mkdir "$1/$COMPLETED_FOLDER"
-		chmod 755 "$1/$COMPLETED_FOLDER"
+		chmod 777 "$1/$COMPLETED_FOLDER"
 	fi
-	
+
 	# Ajout des tâches cron pour les watchers
-	if [ $(lock "$DELUGE_FOLDER") = "true" ]; then
+	if [ $(lock "$1") = "true" ]; then
 		crontab -l > "$CRONTAB_FILE"
 		echo $(cat "$CRONTAB_FILE" | egrep -ivh "($WATCHERS)") > "$CRONTAB_FILE"
 		IFS=$OR_REGEXP_STRING
@@ -103,7 +103,7 @@ init() {
 		done
 		unset IFS
 		crontab "$CRONTAB_FILE"
-		clean_lock "$DELUGE_FOLDER"
+		clean_lock "$1"
 	fi
 }
 
@@ -112,6 +112,9 @@ init_lock() {
 	if [ $(lock "$1") = "false" ]; then
 		log "$LOG_FILE" "init_lock" "Daemon déjà en cours d'exécution"
 		exit 0
+	else
+		# Arrêt inopiné du script : on supprime le lock
+		trap "clean_lock '$1'" INT TERM
 	fi
 }
 
@@ -178,6 +181,7 @@ get_subtitles() {
 	open-subtitles.sh "$OPEN_SUBTITLES_LANG" "$1"
 	subtitles=$(replace_extension "$1" "$OPEN_SUBTITLES_EXTENSION")
 	if [ -e "$subtitles" ]; then
+		chmod 666 "$subtitles"
 		echo "$subtitles"
 	else
 		echo "false"

@@ -31,7 +31,10 @@ for file in $(ls -a -1 -p "$DELUGE_FOLDER/$TODO_FOLDER"|grep -v /);
 do
 	# On ne traite pas les fichiers cachés (qui commencent par un point)
 	if [ ! "$file" = ".${file:1}" ]; then
-		
+
+		# On change les permissions, afin que tous le monde puisse y toucher
+		chmod 666 "$DELUGE_FOLDER/$TODO_FOLDER/$file"
+
 		# Si c'est une vidéo, on la met dans le dossier en attente de sous-titres
 		if [ $(is_video "$file") = "true" ]; then
 			mv "$DELUGE_FOLDER/$TODO_FOLDER/$file" "$DELUGE_FOLDER/$WAITING_SUBTITLES_FOLDER/$file"
